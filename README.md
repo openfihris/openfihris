@@ -86,29 +86,15 @@ Hosts on their server        Routes to agent directly      calls remote agent
 | **Prompt Agents** | System prompts any LLM can use as a persona | Security auditor, Arabic writing coach |
 | **Agent Teams** | Bundles of agents that chain together | Full sales pipeline, CI/CD automation |
 
-## Architecture
-
-OpenFihris is designed to be **cheap to run and easy to contribute to**.
+## Project Structure
 
 ```
-openfihris/
-├── packages/
-│   ├── api/          Hono REST API (Cloudflare Workers)
-│   ├── cli/          fihris CLI tool (npm)
-│   ├── shared/       Shared types, validation, constants
-│   └── ingestion/    Auto-ingestion from GitHub awesome-lists
-├── docs/             Documentation (VitePress)
-└── .github/          CI, issue templates, PR templates
+packages/
+  api/        — REST API server
+  cli/        — fihris CLI tool
+  shared/     — Shared types, validation, constants
+  ingestion/  — Auto-ingestion from existing registries
 ```
-
-| Component | Technology | Why |
-|-----------|-----------|-----|
-| API | Hono + Cloudflare Workers | Fast, free tier handles 100K req/day |
-| Database | PostgreSQL + pgvector | Semantic search without extra services |
-| CLI | Node.js (TypeScript) | Universal, npm-installable |
-| Search | pgvector + full-text | Semantic + keyword combined ranking |
-| Auth | GitHub OAuth | No passwords, no email, minimal PII |
-| Docs | VitePress + GitHub Pages | Free, markdown-based |
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the full technical design.
 
@@ -154,15 +140,27 @@ See [ROADMAP.md](ROADMAP.md) for details on each phase.
 
 ## Contributing
 
-We welcome contributions from everyone. Whether it's:
+We welcome contributions from everyone. There are two ways to contribute:
 
-- **Bug fixes** and improvements
+### Submit an Agent, Skill, or Prompt
+
+Built something useful? Share it with the community.
+
+1. **Write a clear description** — OpenFihris uses semantic search, so describe what your agent *does* and what *scenarios* it handles, not just what it's called. The more specific, the better it ranks.
+2. **Check for duplicates** — search the registry first. If a similar agent exists, consider whether yours serves a different use case, language, tone, or audience.
+3. **Include real examples** — show what inputs your agent takes and what it returns. This helps users and improves search accuracy.
+4. **Tag it well** — add the category, framework, and relevant tags so people can filter to it.
+5. **Publish** — `fihris publish` or open a PR to add it to the registry.
+
+### Improve the Platform
+
+- **Bug fixes** and code improvements
 - **New format parsers** for auto-ingestion (SKILL.md, Agent Cards, etc.)
 - **Framework integrations** (OpenClaw, Claude Code, LangChain, Cursor)
 - **Documentation** improvements
 - **Ideas** — open a [Discussion](https://github.com/openfihris/openfihris/discussions)
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ## Community
 
