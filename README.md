@@ -1,18 +1,34 @@
-# OpenFihris
+<p align="center">
+  <h1 align="center">OpenFihris</h1>
+  <p align="center">
+    <strong>The open index for AI agents.</strong><br>
+    Discover, install, and publish agents, skills, and prompts — like npm, but for AI agents.
+  </p>
+  <p align="center">
+    <em>فهرس (fihris) — Arabic for "index, catalog, directory"</em>
+  </p>
+</p>
 
-> The open index for AI agents. Discover, install, and publish agents, skills, and prompts — like npm, but for AI agents.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/Node.js-22+-green.svg)](https://nodejs.org)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/Node.js-22+-green.svg" alt="Node.js"></a>
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome"></a>
+  <a href="https://github.com/openfihris/openfihris/stargazers"><img src="https://img.shields.io/github/stars/openfihris/openfihris?style=social" alt="GitHub Stars"></a>
+</p>
 
 ---
 
+## The Problem
+
+AI agents are everywhere — but there's no central place to find them. Skills are scattered across GitHub repos, awesome-lists, and framework-specific registries. If you need an agent that reviews code for security vulnerabilities, or one that generates B2B leads in Arabic, you're stuck searching manually.
+
+**OpenFihris fixes this.**
+
 ## What is OpenFihris?
 
-**OpenFihris** (فهرس — Arabic for "index") is a community-driven registry where developers publish, discover, and install AI agents and skills. It works with any framework — OpenClaw, Claude Code, LangChain, CrewAI, Google ADK, or any A2A-compatible agent.
+OpenFihris is a **community-driven registry** where developers publish, discover, and install AI agents and skills. It works with any framework — Claude Code, OpenClaw, LangChain, CrewAI, Google ADK, or any [A2A](https://github.com/google/A2A)-compatible agent.
 
-OpenFihris never runs your code. It indexes metadata, ranks by quality, and points callers directly to the agent. Think of it as the yellow pages for AI agents.
+> OpenFihris never runs your code. It indexes metadata, ranks by quality, and points callers directly to the agent. Think of it as the **yellow pages for AI agents**.
 
 ## Quick Start
 
@@ -20,69 +36,81 @@ OpenFihris never runs your code. It indexes metadata, ranks by quality, and poin
 # Install the CLI
 npm install -g fihris
 
-# Search for agents by capability
-fihris search "code review security"
+# Search for agents by what they DO, not just keywords
+fihris search "code review for security vulnerabilities"
 
-# Install a skill into your framework
+# Install a skill into your local framework
 fihris install @trailofbits/security-audit
 
-# Publish your own agent
+# Publish your own agent to the registry
 fihris login
 fihris publish --github your-username/your-repo/my-skill
 ```
 
+> **Note:** The CLI is under active development. See the [Roadmap](#roadmap) for current status.
+
 ## Why OpenFihris?
 
-- **18,000+ agents indexed** from existing open-source registries on day one
-- **Framework-agnostic** — works with OpenClaw, Claude Code, LangChain, CrewAI, and any A2A client
-- **Semantic search** — find agents by what they *do*, not just keywords
-- **Community-driven** — upvote, review, and curate the best agents
-- **A2A-compatible** — agents can discover other agents at runtime via standard protocol
-- **Free and open source** — MIT licensed, self-funded, runs at near-zero cost
+| Feature | Description |
+|---------|-------------|
+| **18,000+ agents indexed** | Auto-ingested from existing registries and awesome-lists on day one |
+| **Semantic search** | Find agents by what they *do* — "handle Stripe billing" finds billing agents even without the word "Stripe" in the name |
+| **Framework-agnostic** | Works with Claude Code, OpenClaw, LangChain, CrewAI, Google ADK, and any A2A client |
+| **Community-driven** | Upvote, review, and curate the best agents |
+| **A2A-compatible** | Agents can discover other agents at runtime via standard protocol |
+| **Near-zero cost** | Runs on free tiers — metadata only, never executes agent code |
+| **Open source** | MIT licensed. Free forever. |
 
 ## How It Works
 
 ```
-1. BUILD    an agent, skill, or prompt in your own environment
-2. PUBLISH  it to OpenFihris with `fihris publish`
-3. DISCOVER any agent can search the registry by capability
-4. INSTALL  download skills locally or call remote agents directly
+Developer                    OpenFihris                    User / Agent
+─────────                    ──────────                    ────────────
+Builds agent            ──>  Indexes metadata         <──  Searches by capability
+Publishes Agent Card    ──>  Ranks by quality + trust <──  Installs locally or
+Hosts on their server        Routes to agent directly      calls remote agent
+                             ────────────────────
+                             Never runs code
+                             Never hosts files
+                             Just metadata + search
 ```
 
-OpenFihris stores metadata only. Agent code lives on your GitHub, runs on your infrastructure. The registry is just an index.
-
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│  Developer   │────>│  OpenFihris  │<────│    User      │
-│  publishes   │     │  indexes &   │     │  searches &  │
-│  agent card  │     │  ranks       │     │  installs    │
-└─────────────┘     └──────────────┘     └─────────────┘
-                           │
-                    Never runs code
-                    Never hosts files
-                    Just metadata + search
-```
+**The A2A protocol defines how agents talk. OpenFihris defines how they find each other.**
 
 ## What You Can Publish
 
-| Type | Description | Example |
-|------|-------------|---------|
+| Type | What it is | Example |
+|------|-----------|---------|
 | **Skills** | SKILL.md files that run locally in your framework | Code review, lead generation, data analysis |
-| **Remote Agents** | A2A-compatible agents hosted on your server | API testing service, translation agent |
-| **Prompt Agents** | System prompts that any LLM can use as a persona | Security auditor, writing coach |
-| **Agent Teams** | Groups of agents that chain together for a workflow | Full sales pipeline, CI/CD automation |
+| **Remote Agents** | A2A-compatible agents hosted on your server | Translation API, email outreach service |
+| **Prompt Agents** | System prompts any LLM can use as a persona | Security auditor, Arabic writing coach |
+| **Agent Teams** | Bundles of agents that chain together | Full sales pipeline, CI/CD automation |
 
-## Project Structure
+## Architecture
 
-This is a monorepo managed with pnpm workspaces:
+OpenFihris is designed to be **cheap to run and easy to contribute to**.
 
 ```
-packages/
-  api/        — Hono REST API (Cloudflare Workers)
-  cli/        — fihris CLI tool (npm)
-  shared/     — Shared types, validation, and constants
-  ingestion/  — Auto-ingestion scripts for crawling existing registries
+openfihris/
+├── packages/
+│   ├── api/          Hono REST API (Cloudflare Workers)
+│   ├── cli/          fihris CLI tool (npm)
+│   ├── shared/       Shared types, validation, constants
+│   └── ingestion/    Auto-ingestion from GitHub awesome-lists
+├── docs/             Documentation (VitePress)
+└── .github/          CI, issue templates, PR templates
 ```
+
+| Component | Technology | Why |
+|-----------|-----------|-----|
+| API | Hono + Cloudflare Workers | Fast, free tier handles 100K req/day |
+| Database | PostgreSQL + pgvector | Semantic search without extra services |
+| CLI | Node.js (TypeScript) | Universal, npm-installable |
+| Search | pgvector + full-text | Semantic + keyword combined ranking |
+| Auth | GitHub OAuth | No passwords, no email, minimal PII |
+| Docs | VitePress + GitHub Pages | Free, markdown-based |
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the full technical design.
 
 ## Development
 
@@ -108,21 +136,45 @@ pnpm test
 pnpm format
 ```
 
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-Whether it's bug fixes, new format parsers, framework integrations, or documentation — every contribution helps.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor guide.
 
 ## Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for the full development plan.
+| Phase | What | Status |
+|-------|------|--------|
+| 1 | Registry core + auto-ingestion (API, search, database) | In progress |
+| 2 | CLI tool (`fihris search`, `install`, `publish`) | Planned |
+| 3 | Documentation site | Planned |
+| 4 | Community features (votes, health checks, trust scores) | Planned |
+| 5 | A2A discovery endpoint | Planned |
+| 6 | Framework plugins (OpenClaw, Claude Code, Python SDK) | Planned |
+| 7 | Public launch | Planned |
+
+See [ROADMAP.md](ROADMAP.md) for details on each phase.
+
+## Contributing
+
+We welcome contributions from everyone. Whether it's:
+
+- **Bug fixes** and improvements
+- **New format parsers** for auto-ingestion (SKILL.md, Agent Cards, etc.)
+- **Framework integrations** (OpenClaw, Claude Code, LangChain, Cursor)
+- **Documentation** improvements
+- **Ideas** — open a [Discussion](https://github.com/openfihris/openfihris/discussions)
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 
 ## Community
 
 - [GitHub Issues](https://github.com/openfihris/openfihris/issues) — report bugs, request features
-- [GitHub Discussions](https://github.com/openfihris/openfihris/discussions) — ask questions, share ideas
+- [GitHub Discussions](https://github.com/openfihris/openfihris/discussions) — ask questions, propose ideas, share what you're building
 
 ## License
 
 MIT — see [LICENSE](LICENSE)
+
+---
+
+<p align="center">
+  <sub>Built with the belief that AI agents should be easy to find, easy to share, and free for everyone.</sub>
+</p>
