@@ -20,7 +20,7 @@
 
 ## The Problem
 
-AI agents are everywhere — but there's no central place to find them. Skills are scattered across GitHub repos, awesome-lists, and framework-specific registries. If you need an agent that reviews code for security vulnerabilities, or one that generates B2B leads in Arabic, you're stuck searching manually.
+AI agents are everywhere — but there's no central place to find them. Skills are scattered across GitHub repos, awesome-lists, and framework-specific registries. If you need an agent that reviews code for security vulnerabilities, or one that generates B2B leads in Arabic, maybe an AI agent that is made for generating B2B leads in pharamacutical industry, OpenFihris a plug and play, community driven registry for all AI agents, SKILLS and more.
 
 **OpenFihris fixes this.**
 
