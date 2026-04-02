@@ -1,0 +1,43 @@
+{
+  "name": "openfihris",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The open index for AI agents. Discover, install, and publish agents, skills, and prompts.",
+  "author": "OpenFihris Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openfihris/openfihris.git"
+  },
+  "homepage": "https://openfihris.dev",
+  "bugs": {
+    "url": "https://github.com/openfihris/openfihris/issues"
+  },
+  "keywords": [
+    "ai-agents",
+    "agent-registry",
+    "a2a-protocol",
+    "skills",
+    "agent-discovery",
+    "cli",
+    "mcp",
+    "open-source"
+  ],
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=9"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write \"packages/*/src/**/*.ts\"",
+    "format:check": "prettier --check \"packages/*/src/**/*.ts\"",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  }
+}

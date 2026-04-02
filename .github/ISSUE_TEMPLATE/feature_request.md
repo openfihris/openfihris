@@ -1,0 +1,18 @@
+---
+name: Feature Request
+about: Suggest an idea
+title: '[Feature] '
+labels: enhancement
+---
+
+**Problem**
+What problem does this solve?
+
+**Proposed solution**
+How should it work?
+
+**Alternatives considered**
+Any other approaches you thought of?
+
+**Additional context**
+Any other information or screenshots.

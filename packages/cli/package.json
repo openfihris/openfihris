@@ -1,0 +1,32 @@
+{
+  "name": "fihris",
+  "version": "0.1.0",
+  "description": "CLI for OpenFihris — search, install, and publish AI agents",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "fihris": "./bin/fihris.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check \"src/**/*.ts\"",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@openfihris/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.4"
+  },
+  "keywords": [
+    "ai-agents",
+    "agent-registry",
+    "cli",
+    "a2a",
+    "skills",
+    "fihris",
+    "openfihris"
+  ]
+}

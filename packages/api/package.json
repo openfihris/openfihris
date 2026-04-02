@@ -1,0 +1,24 @@
+{
+  "name": "@openfihris/api",
+  "version": "0.1.0",
+  "description": "OpenFihris REST API server — Hono on Cloudflare Workers",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check \"src/**/*.ts\"",
+    "test": "vitest run --passWithNoTests",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@openfihris/shared": "workspace:*",
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.4",
+    "wrangler": "^3.99.0"
+  }
+}
