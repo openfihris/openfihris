@@ -10,13 +10,20 @@
     "typecheck": "tsc --noEmit",
     "lint": "prettier --check \"src/**/*.ts\"",
     "test": "vitest run --passWithNoTests",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
     "@openfihris/shared": "workspace:*",
+    "drizzle-orm": "^0.38.3",
     "hono": "^4.6.0"
   },
   "devDependencies": {
+    "drizzle-kit": "^0.30.4",
     "typescript": "^5.7.3",
     "vitest": "^3.0.4",
     "wrangler": "^3.99.0"
