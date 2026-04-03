@@ -29,6 +29,9 @@ importers:
       hono:
         specifier: ^4.6.0
         version: 4.12.10
+      jose:
+        specifier: ^5.9.6
+        version: 5.10.0
     devDependencies:
       drizzle-kit:
         specifier: ^0.30.4
@@ -1295,6 +1298,9 @@ packages:
     resolution: {integrity: sha512-6B3tLtFqtQS4ekarvLVMZ+X+VlvQekbe4taUkf/rhVO3d/h0M2rfARm/pXLcPEsjjMsFgrFgSrhQIxcSVrBz8w==}
     engines: {node: '>=18'}
 
+  jose@5.10.0:
+    resolution: {integrity: sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==}
+
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
 
@@ -2434,6 +2440,8 @@ snapshots:
     optional: true
 
   isexe@3.1.5: {}
+
+  jose@5.10.0: {}
 
   js-tokens@9.0.1: {}
 
