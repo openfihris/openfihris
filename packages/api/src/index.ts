@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { health } from "./routes/health.js";
+import { auth } from "./routes/auth.js";
 import { notFoundHandler, globalErrorHandler } from "./middleware/error.js";
 
 export type Env = {
@@ -19,6 +20,7 @@ app.use("*", cors());
 
 // Routes
 app.route("/", health);
+app.route("/", auth);
 
 // Error handling
 app.notFound(notFoundHandler);

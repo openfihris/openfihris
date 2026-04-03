@@ -52,13 +52,15 @@ export const agents = pgTable(
     id: uuid("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    creatorId: uuid("creator_id").references(() => creators.id),
+    creatorId: uuid("creator_id")
+      .references(() => creators.id)
+      .notNull(),
     name: text("name").notNull(),
     slug: text("slug").unique().notNull(),
     description: text("description").notNull(),
     version: text("version").default("0.1.0"),
     type: text("type").notNull(),
-    category: text("category"),
+    category: text("category").notNull(),
     tags: text("tags")
       .array()
       .default(sql`'{}'::text[]`),
@@ -109,7 +111,7 @@ export const agentCapabilities = pgTable(
     description: text("description").notNull(),
     inputSchema: jsonb("input_schema"),
     outputSchema: jsonb("output_schema"),
-    avgLatency: integer("avg_latency"),
+    avgLatencyMs: integer("avg_latency_ms"),
     costPerCall: numeric("cost_per_call", { precision: 10, scale: 6 }).default(
       "0",
     ),
