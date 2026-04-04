@@ -22,7 +22,7 @@ export function generateSlug(username: string, name: string): string {
     );
   }
 
-  return `@${username}/${normalized}`;
+  return `@${username.toLowerCase()}/${normalized}`;
 }
 
 /**
@@ -143,7 +143,7 @@ export async function publishAgent(
         authType: card.auth?.type,
         githubUrl: card.githubUrl,
         homepage: card.homepage,
-        agentCard: card,
+        agentCard: { ...card, verifiedAuthor: false },
         frameworks: card.frameworks,
         verified: false,
       })

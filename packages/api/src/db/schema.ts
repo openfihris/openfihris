@@ -216,5 +216,8 @@ export const reports = pgTable(
     resolved: boolean("resolved").default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   },
-  (table) => [index("idx_reports_agent").on(table.agentId)],
+  (table) => [
+    index("idx_reports_agent").on(table.agentId),
+    uniqueIndex("idx_reports_unique").on(table.reporterId, table.agentId),
+  ],
 );
