@@ -5,8 +5,16 @@ import { requireAuth } from "../middleware/auth.js";
 import { errorResponse } from "../middleware/error.js";
 import { publishAgent, getAgentBySlug } from "../services/agents.js";
 import { searchAgents } from "../services/search.js";
-import { SearchQuerySchema, CATEGORIES } from "@openfihris/shared";
+import {
+  SearchQuerySchema,
+  VoteSchema,
+  ReportSchema,
+  CATEGORIES,
+} from "@openfihris/shared";
 import { getTrendingAgents } from "../services/trending.js";
+import { castVote } from "../services/votes.js";
+import { reportAgent } from "../services/reports.js";
+import { canPublish } from "../middleware/ratelimit.js";
 
 const agentsRouter = new Hono<Env>();
 
@@ -69,6 +77,15 @@ agentsRouter.post("/api/v1/agents", requireAuth, async (c) => {
   const db = createDb(c.env.DATABASE_URL);
   const creatorId = c.get("creatorId");
   const username = c.get("username");
+
+  // Rate limit: max 50 agents per day per user
+  if (!(await canPublish(db, creatorId))) {
+    return errorResponse(
+      c,
+      "RATE_LIMITED",
+      "You have reached the daily publish limit (50 agents per day)",
+    );
+  }
 
   const result = await publishAgent(db, creatorId, username, {
     agentCard: body.agentCard,
@@ -134,5 +151,121 @@ agentsRouter.get("/api/v1/trending", async (c) => {
     return c.json({ agents: [] });
   }
 });
+
+/**
+ * POST /api/v1/agents/@:username/:name/vote — Vote on an agent (authenticated)
+ */
+agentsRouter.post(
+  "/api/v1/agents/@:username/:name/vote",
+  requireAuth,
+  async (c) => {
+    const username = c.req.param("username");
+    const name = c.req.param("name");
+    const slug = `@${username}/${name}`;
+
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return errorResponse(
+        c,
+        "VALIDATION_ERROR",
+        "Invalid JSON in request body",
+      );
+    }
+
+    const parseResult = VoteSchema.safeParse(body);
+    if (!parseResult.success) {
+      return errorResponse(c, "VALIDATION_ERROR", "Vote must be 1 or -1");
+    }
+
+    try {
+      const db = createDb(c.env.DATABASE_URL);
+      const agent = await getAgentBySlug(db, slug);
+      if (!agent) {
+        return errorResponse(c, "NOT_FOUND", "Agent not found");
+      }
+
+      const creatorId = c.get("creatorId");
+      const result = await castVote(
+        db,
+        creatorId,
+        agent.id,
+        parseResult.data.vote,
+      );
+      return c.json(result);
+    } catch (err) {
+      console.error("Vote endpoint error:", err);
+      const message =
+        err instanceof Error ? err.message : "Failed to cast vote";
+      return errorResponse(c, "INTERNAL_ERROR", message);
+    }
+  },
+);
+
+/**
+ * POST /api/v1/agents/@:username/:name/report — Report an agent (authenticated)
+ */
+agentsRouter.post(
+  "/api/v1/agents/@:username/:name/report",
+  requireAuth,
+  async (c) => {
+    const username = c.req.param("username");
+    const name = c.req.param("name");
+    const slug = `@${username}/${name}`;
+
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return errorResponse(
+        c,
+        "VALIDATION_ERROR",
+        "Invalid JSON in request body",
+      );
+    }
+
+    const parseResult = ReportSchema.safeParse(body);
+    if (!parseResult.success) {
+      return errorResponse(
+        c,
+        "VALIDATION_ERROR",
+        "Invalid report. Provide a valid reason.",
+        {
+          issues: parseResult.error.issues.map((i) => ({
+            path: i.path.join("."),
+            message: i.message,
+          })),
+        },
+      );
+    }
+
+    try {
+      const db = createDb(c.env.DATABASE_URL);
+      const agent = await getAgentBySlug(db, slug);
+      if (!agent) {
+        return errorResponse(c, "NOT_FOUND", "Agent not found");
+      }
+
+      const creatorId = c.get("creatorId");
+      const result = await reportAgent(
+        db,
+        creatorId,
+        agent.id,
+        parseResult.data.reason,
+        parseResult.data.detail,
+      );
+      return c.json(result);
+    } catch (err) {
+      console.error("Report endpoint error:", err);
+      const message =
+        err instanceof Error ? err.message : "Failed to submit report";
+      if (message.includes("already reported")) {
+        return errorResponse(c, "CONFLICT", message);
+      }
+      return errorResponse(c, "INTERNAL_ERROR", message);
+    }
+  },
+);
 
 export { agentsRouter };
