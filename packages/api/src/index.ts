@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { bodyLimit } from "hono/body-limit";
 import { health } from "./routes/health.js";
 import { auth } from "./routes/auth.js";
 import { agentsRouter } from "./routes/agents.js";
@@ -24,6 +25,7 @@ const app = new Hono<Env>();
 
 // Global middleware
 app.use("*", cors());
+app.use("*", bodyLimit({ maxSize: 100 * 1024 })); // 100KB max request body
 
 // Routes
 app.route("/", health);
