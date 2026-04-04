@@ -33,6 +33,14 @@ export function notFoundHandler(c: Context) {
 }
 
 export function globalErrorHandler(err: Error, c: Context) {
-  console.error("Unhandled error:", err);
+  // Log the full error for debugging
+  console.error(`[${new Date().toISOString()}] Unhandled error:`, {
+    method: c.req.method,
+    path: c.req.path,
+    error: err.message,
+    stack: err.stack,
+  });
+
+  // Never expose internal error details to the client
   return errorResponse(c, "INTERNAL_ERROR", "An unexpected error occurred");
 }

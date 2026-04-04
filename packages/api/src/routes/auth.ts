@@ -11,18 +11,40 @@ import { errorResponse } from "../middleware/error.js";
 
 const auth = new Hono<Env>();
 
+// Safe error messages to return to the client.
+// Internal details (stack traces, DB errors) are logged but never exposed.
+const SAFE_ERROR_PREFIXES = [
+  "GitHub OAuth error:",
+  "GitHub access token",
+  "GitHub API rate limit",
+  "GitHub returned an invalid",
+];
+
+function getSafeMessage(err: unknown): string {
+  if (!(err instanceof Error)) return "Authentication failed";
+  const msg = err.message;
+  if (SAFE_ERROR_PREFIXES.some((prefix) => msg.startsWith(prefix))) return msg;
+  return "Authentication failed";
+}
+
 /**
  * POST /api/v1/auth/github
  * Receives a GitHub OAuth code, exchanges it for an access token,
  * fetches the user profile, creates/updates the creator, and returns a JWT.
  */
 auth.post("/api/v1/auth/github", async (c) => {
-  const body = await c.req.json<{ code?: string }>();
-  if (!body.code) {
+  let body: { code?: string };
+  try {
+    body = await c.req.json<{ code?: string }>();
+  } catch {
+    return errorResponse(c, "VALIDATION_ERROR", "Invalid JSON in request body");
+  }
+
+  if (!body.code || typeof body.code !== "string") {
     return errorResponse(
       c,
       "VALIDATION_ERROR",
-      "Missing 'code' in request body",
+      "Missing or invalid 'code' in request body",
     );
   }
 
@@ -54,9 +76,8 @@ auth.post("/api/v1/auth/github", async (c) => {
       },
     });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Authentication failed";
-    return errorResponse(c, "UNAUTHORIZED", message);
+    console.error("Auth error:", err);
+    return errorResponse(c, "UNAUTHORIZED", getSafeMessage(err));
   }
 });
 
