@@ -3,6 +3,8 @@ import { cors } from "hono/cors";
 import { health } from "./routes/health.js";
 import { auth } from "./routes/auth.js";
 import { agentsRouter } from "./routes/agents.js";
+import { creatorsRouter } from "./routes/creators.js";
+import { meRouter } from "./routes/me.js";
 import { notFoundHandler, globalErrorHandler } from "./middleware/error.js";
 
 export type Env = {
@@ -27,6 +29,8 @@ app.use("*", cors());
 app.route("/", health);
 app.route("/", auth);
 app.route("/", agentsRouter);
+app.route("/", creatorsRouter);
+app.route("/", meRouter);
 
 // Error handling
 app.notFound(notFoundHandler);

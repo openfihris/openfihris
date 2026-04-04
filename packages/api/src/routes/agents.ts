@@ -5,7 +5,8 @@ import { requireAuth } from "../middleware/auth.js";
 import { errorResponse } from "../middleware/error.js";
 import { publishAgent, getAgentBySlug } from "../services/agents.js";
 import { searchAgents } from "../services/search.js";
-import { SearchQuerySchema } from "@openfihris/shared";
+import { SearchQuerySchema, CATEGORIES } from "@openfihris/shared";
+import { getTrendingAgents } from "../services/trending.js";
 
 const agentsRouter = new Hono<Env>();
 
@@ -108,6 +109,29 @@ agentsRouter.get("/api/v1/agents/@:username/:name", async (c) => {
   } catch (err) {
     console.error("Error fetching agent:", err);
     return errorResponse(c, "NOT_FOUND", "Agent not found");
+  }
+});
+
+/**
+ * GET /api/v1/categories — List all agent categories (public)
+ */
+agentsRouter.get("/api/v1/categories", (c) => {
+  return c.json({ categories: CATEGORIES });
+});
+
+/**
+ * GET /api/v1/trending — Top agents by recent downloads and upvotes (public)
+ */
+agentsRouter.get("/api/v1/trending", async (c) => {
+  const limit = Math.min(Number(c.req.query("limit") ?? 20), 100);
+
+  try {
+    const db = createDb(c.env.DATABASE_URL);
+    const results = await getTrendingAgents(db, limit);
+    return c.json({ agents: results });
+  } catch (err) {
+    console.error("Trending endpoint error:", err);
+    return c.json({ agents: [] });
   }
 });
 

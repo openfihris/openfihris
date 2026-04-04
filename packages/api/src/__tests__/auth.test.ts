@@ -41,10 +41,10 @@ describe("Auth Endpoint", () => {
 
 describe("Auth Middleware", () => {
   it("rejects requests without Authorization header", async () => {
-    // Use a protected endpoint (once one exists, this tests the middleware)
     const res = await app.request("/api/v1/me");
-    // Should be 404 for now since /me doesn't exist yet
-    // When we add protected routes, this will test auth rejection
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
+    const body = (await res.json()) as Record<string, unknown>;
+    const error = body.error as Record<string, unknown>;
+    expect(error.code).toBe("UNAUTHORIZED");
   });
 });
