@@ -128,13 +128,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contributor guide.
 
 | Phase | What | Status |
 |-------|------|--------|
-| 1 | Registry core + auto-ingestion (API, search, database) | In progress |
-| 2 | CLI tool (`fihris search`, `install`, `publish`) | Planned |
-| 3 | Documentation site | Planned |
-| 4 | Community features (votes, health checks, trust scores) | Planned |
-| 5 | A2A discovery endpoint | Planned |
-| 6 | Framework plugins (OpenClaw, Claude Code, Python SDK) | Planned |
-| 7 | Public launch | Planned |
+| 1 | REST API — search, publish, auth, votes, reports | **Done** |
+| 2 | CLI tool (`fihris search`, `install`, `publish`) | Up next |
+| 3 | Semantic search with pgvector | Planned |
+| 4 | Auto-ingestion (18,000+ agents from existing sources) | Planned |
+| 5 | Documentation site | Planned |
+| 6 | A2A discovery endpoint | Planned |
+| 7 | Framework plugins (OpenClaw, Claude Code, Python SDK) | Planned |
+| 8 | Public launch | Planned |
 
 See [ROADMAP.md](ROADMAP.md) for details on each phase.
 
