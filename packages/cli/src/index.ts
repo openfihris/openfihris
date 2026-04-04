@@ -64,6 +64,7 @@ program
 program
   .command("publish")
   .description("Publish an agent to the OpenFihris registry")
+  .option("-f, --file <path>", "Path to agent-card.json", "agent-card.json")
   .action(publishCommand);
 
 export default program;
