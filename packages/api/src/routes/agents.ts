@@ -4,8 +4,43 @@ import { createDb } from "../db/index.js";
 import { requireAuth } from "../middleware/auth.js";
 import { errorResponse } from "../middleware/error.js";
 import { publishAgent, getAgentBySlug } from "../services/agents.js";
+import { searchAgents } from "../services/search.js";
+import { SearchQuerySchema } from "@openfihris/shared";
 
 const agentsRouter = new Hono<Env>();
+
+/**
+ * GET /api/v1/agents/search — Search for agents (public)
+ */
+agentsRouter.get("/api/v1/agents/search", async (c) => {
+  const rawQuery = {
+    q: c.req.query("q"),
+    category: c.req.query("category"),
+    framework: c.req.query("framework"),
+    type: c.req.query("type"),
+    limit: c.req.query("limit"),
+    cursor: c.req.query("cursor"),
+  };
+
+  const parseResult = SearchQuerySchema.safeParse(rawQuery);
+  if (!parseResult.success) {
+    return errorResponse(c, "VALIDATION_ERROR", "Invalid search parameters", {
+      issues: parseResult.error.issues.map((i) => ({
+        path: i.path.join("."),
+        message: i.message,
+      })),
+    });
+  }
+
+  try {
+    const db = createDb(c.env.DATABASE_URL);
+    const results = await searchAgents(db, parseResult.data);
+    return c.json(results);
+  } catch (err) {
+    console.error("Search endpoint error:", err);
+    return c.json({ results: [], cursor: null, total: 0 });
+  }
+});
 
 /**
  * POST /api/v1/agents — Publish a new agent (authenticated)
