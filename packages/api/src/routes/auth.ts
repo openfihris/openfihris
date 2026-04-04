@@ -81,4 +81,52 @@ auth.post("/api/v1/auth/github", async (c) => {
   }
 });
 
+/**
+ * POST /api/v1/auth/github/token
+ * Accepts a GitHub access token directly (used by CLI device flow).
+ * Fetches the user profile, creates/updates the creator, and returns a JWT.
+ */
+auth.post("/api/v1/auth/github/token", async (c) => {
+  let body: { access_token?: string };
+  try {
+    body = await c.req.json<{ access_token?: string }>();
+  } catch {
+    return errorResponse(c, "VALIDATION_ERROR", "Invalid JSON in request body");
+  }
+
+  if (!body.access_token || typeof body.access_token !== "string") {
+    return errorResponse(
+      c,
+      "VALIDATION_ERROR",
+      "Missing or invalid 'access_token' in request body",
+    );
+  }
+
+  try {
+    const githubUser = await fetchGitHubUser(body.access_token);
+
+    const db = createDb(c.env.DATABASE_URL);
+    const creatorId = await upsertCreator(db, githubUser);
+
+    const token = await generateJwt(
+      creatorId,
+      githubUser.login,
+      c.env.JWT_SECRET,
+    );
+
+    return c.json({
+      token,
+      user: {
+        id: creatorId,
+        username: githubUser.login,
+        displayName: githubUser.name,
+        avatarUrl: githubUser.avatar_url,
+      },
+    });
+  } catch (err) {
+    console.error("Auth token error:", err);
+    return errorResponse(c, "UNAUTHORIZED", getSafeMessage(err));
+  }
+});
+
 export { auth };

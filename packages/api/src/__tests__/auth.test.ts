@@ -39,6 +39,29 @@ describe("Auth Endpoint", () => {
   });
 });
 
+describe("Auth Token Endpoint", () => {
+  it("POST /api/v1/auth/github/token rejects missing access_token", async () => {
+    const res = await app.request("/api/v1/auth/github/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as Record<string, unknown>;
+    const error = body.error as Record<string, unknown>;
+    expect(error.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("POST /api/v1/auth/github/token rejects non-string access_token", async () => {
+    const res = await app.request("/api/v1/auth/github/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ access_token: 12345 }),
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
 describe("Auth Middleware", () => {
   it("rejects requests without Authorization header", async () => {
     const res = await app.request("/api/v1/me");
