@@ -140,7 +140,8 @@ agentsRouter.get("/api/v1/categories", (c) => {
  * GET /api/v1/trending — Top agents by recent downloads and upvotes (public)
  */
 agentsRouter.get("/api/v1/trending", async (c) => {
-  const limit = Math.min(Number(c.req.query("limit") ?? 20), 100);
+  const rawLimit = Number(c.req.query("limit") ?? 20);
+  const limit = Math.min(Number.isNaN(rawLimit) ? 20 : rawLimit, 100);
 
   try {
     const db = createDb(c.env.DATABASE_URL);

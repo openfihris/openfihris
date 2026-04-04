@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { eq } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import type { Env } from "../index.js";
 import { createDb } from "../db/index.js";
 import { creators, agents } from "../db/schema.js";
@@ -27,11 +27,11 @@ creatorsRouter.get("/api/v1/creators/:username", async (c) => {
 
     const creator = results[0];
 
-    // Get their published agents count
-    const agentResults = await db
-      .select({ id: agents.id })
+    // Get their published agents count (efficient count query)
+    const [countResult] = await db
+      .select({ count: sql<number>`count(*)` })
       .from(agents)
-      .where(eq(agents.creatorId, creator.id));
+      .where(and(eq(agents.creatorId, creator.id), eq(agents.isActive, true)));
 
     return c.json({
       creator: {
@@ -46,7 +46,7 @@ creatorsRouter.get("/api/v1/creators/:username", async (c) => {
         officialOrgName: creator.officialOrgName,
         publicRepos: creator.publicRepos,
         followers: creator.followers,
-        agentCount: agentResults.length,
+        agentCount: Number(countResult?.count ?? 0),
         createdAt: creator.createdAt,
       },
     });
@@ -79,7 +79,12 @@ creatorsRouter.get("/api/v1/creators/:username/agents", async (c) => {
     const creatorAgents = await db
       .select()
       .from(agents)
-      .where(eq(agents.creatorId, creatorResults[0].id));
+      .where(
+        and(
+          eq(agents.creatorId, creatorResults[0].id),
+          eq(agents.isActive, true),
+        ),
+      );
 
     return c.json({ agents: creatorAgents });
   } catch (err) {

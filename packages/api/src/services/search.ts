@@ -66,10 +66,23 @@ export async function searchAgents(
       .where(and(...baseConditions));
     const total = Number(countResult?.count ?? 0);
 
-    // Add cursor for pagination (only affects results, not total count)
+    // Add cursor for keyset pagination (only affects results, not total count)
+    // Cursor encodes the sort key values from the last item on the previous page:
+    // "downloads:upvotes:createdAt:id" — this ensures stable pagination matching ORDER BY
     const conditions = [...baseConditions];
     if (cursor) {
-      conditions.push(sql`${agents.id} < ${cursor}`);
+      const parts = cursor.split(":");
+      if (parts.length === 4) {
+        const [curDl, curUp, curTs, curId] = parts;
+        conditions.push(
+          sql`(
+            ${agents.downloads} < ${Number(curDl)}
+            OR (${agents.downloads} = ${Number(curDl)} AND ${agents.upvotes} < ${Number(curUp)})
+            OR (${agents.downloads} = ${Number(curDl)} AND ${agents.upvotes} = ${Number(curUp)} AND ${agents.createdAt} < ${curTs})
+            OR (${agents.downloads} = ${Number(curDl)} AND ${agents.upvotes} = ${Number(curUp)} AND ${agents.createdAt} = ${curTs} AND ${agents.id} < ${curId})
+          )`,
+        );
+      }
     }
 
     // Fetch results with creator info
@@ -90,15 +103,19 @@ export async function searchAgents(
         desc(agents.downloads),
         desc(agents.upvotes),
         desc(agents.createdAt),
+        desc(agents.id),
       )
       .limit(limit + 1); // Fetch one extra to check if there are more
 
     // Determine if there's a next page
+    // Cursor encodes "downloads:upvotes:createdAt:id" for keyset pagination
     const hasMore = results.length > limit;
     const pageResults = hasMore ? results.slice(0, limit) : results;
-    const nextCursor = hasMore
-      ? pageResults[pageResults.length - 1].agent.id
-      : null;
+    const lastItem = pageResults[pageResults.length - 1];
+    const nextCursor =
+      hasMore && lastItem
+        ? `${lastItem.agent.downloads ?? 0}:${lastItem.agent.upvotes ?? 0}:${lastItem.agent.createdAt?.toISOString() ?? ""}:${lastItem.agent.id}`
+        : null;
 
     // Build response with scores
     const scored = pageResults.map((row) => ({

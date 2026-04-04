@@ -17,8 +17,8 @@ describe("generateSlug", () => {
     );
   });
 
-  it("lowercases everything", () => {
-    expect(generateSlug("Alice", "LeadGen PRO")).toBe("@Alice/leadgen-pro");
+  it("lowercases everything including username", () => {
+    expect(generateSlug("Alice", "LeadGen PRO")).toBe("@alice/leadgen-pro");
   });
 
   it("handles hyphens in name", () => {
@@ -59,8 +59,8 @@ describe("POST /api/v1/agents", () => {
       },
       body: "not json",
     });
-    // Either 401 (bad token) or 400 (bad json) — both are correct rejections
-    expect([400, 401]).toContain(res.status);
+    // Auth middleware rejects the fake token before body parsing
+    expect(res.status).toBe(401);
   });
 });
 
