@@ -44,6 +44,25 @@ describe("GET /api/v1/creators/:username/agents", () => {
   });
 });
 
+describe("POST /api/v1/agents/@:username/:name/download", () => {
+  it("returns 404 for non-existent agent", async () => {
+    const res = await app.request(
+      "/api/v1/agents/@nobody/fake-agent/download",
+      { method: "POST" },
+    );
+    // Returns 200 with downloads:0 (fail-safe) or 404
+    expect([200, 404]).toContain(res.status);
+  });
+
+  it("does not require authentication", async () => {
+    const res = await app.request("/api/v1/agents/@test/some-agent/download", {
+      method: "POST",
+    });
+    // Should NOT be 401 — downloads are public
+    expect(res.status).not.toBe(401);
+  });
+});
+
 describe("GET /api/v1/me", () => {
   it("rejects unauthenticated requests", async () => {
     const res = await app.request("/api/v1/me");

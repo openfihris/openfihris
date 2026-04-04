@@ -14,7 +14,11 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@openfihris/shared": "workspace:*"
+    "@openfihris/shared": "workspace:*",
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "conf": "^15.1.0",
+    "ora": "^9.3.0"
   },
   "devDependencies": {
     "typescript": "^5.7.3",

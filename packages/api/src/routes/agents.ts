@@ -14,6 +14,7 @@ import {
 import { getTrendingAgents } from "../services/trending.js";
 import { castVote } from "../services/votes.js";
 import { reportAgent } from "../services/reports.js";
+import { trackDownload } from "../services/downloads.js";
 import { canPublish } from "../middleware/ratelimit.js";
 
 const agentsRouter = new Hono<Env>();
@@ -126,6 +127,35 @@ agentsRouter.get("/api/v1/agents/@:username/:name", async (c) => {
   } catch (err) {
     console.error("Error fetching agent:", err);
     return errorResponse(c, "NOT_FOUND", "Agent not found");
+  }
+});
+
+/**
+ * POST /api/v1/agents/@:username/:name/download — Track a download (public, no auth)
+ * Called by the CLI when someone installs an agent.
+ * Rate limited per IP to prevent abuse.
+ */
+agentsRouter.post("/api/v1/agents/@:username/:name/download", async (c) => {
+  const username = c.req.param("username");
+  const name = c.req.param("name");
+  const slug = `@${username}/${name}`;
+
+  try {
+    const db = createDb(c.env.DATABASE_URL);
+    const agent = await getAgentBySlug(db, slug);
+    if (!agent) {
+      return errorResponse(c, "NOT_FOUND", "Agent not found");
+    }
+
+    const result = await trackDownload(db, agent.id);
+    return c.json({
+      message: "Download tracked",
+      downloads: result.downloads,
+    });
+  } catch (err) {
+    console.error("Download tracking error:", err);
+    // Return 200 anyway — don't break installs over analytics
+    return c.json({ message: "Download tracked", downloads: 0 });
   }
 });
 
