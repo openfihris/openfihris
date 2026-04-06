@@ -135,20 +135,22 @@ export async function upsertCreator(
   user: GitHubUser,
 ): Promise<string> {
   try {
+    const values: typeof creators.$inferInsert = {
+      githubId: user.id,
+      username: user.login,
+      displayName: user.name,
+      avatarUrl: user.avatar_url,
+      bio: user.bio,
+      githubCreatedAt: new Date(user.created_at),
+      publicRepos: user.public_repos,
+      followers: user.followers,
+      githubUrl: user.html_url,
+      website: user.blog,
+    };
+
     const [result] = await db
       .insert(creators)
-      .values({
-        githubId: user.id,
-        username: user.login,
-        displayName: user.name,
-        avatarUrl: user.avatar_url,
-        bio: user.bio,
-        githubCreatedAt: new Date(user.created_at),
-        publicRepos: user.public_repos,
-        followers: user.followers,
-        githubUrl: user.html_url,
-        website: user.blog,
-      })
+      .values(values)
       .onConflictDoUpdate({
         target: creators.githubId,
         set: {
