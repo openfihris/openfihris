@@ -146,7 +146,8 @@ async function seed() {
   // Insert demo creator
   const [creator] = await db
     .insert(creators)
-    .values(SEED_CREATOR)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .values(SEED_CREATOR as any)
     .onConflictDoNothing()
     .returning({ id: creators.id });
 
@@ -185,6 +186,7 @@ async function seed() {
     try {
       await db
         .insert(agents)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .values({
           creatorId: resolvedCreatorId,
           name: agent.name,
@@ -208,7 +210,7 @@ async function seed() {
           },
           upvotes: Math.floor(Math.random() * 50),
           downloads: Math.floor(Math.random() * 500),
-        })
+        } as any)
         .onConflictDoNothing();
 
       inserted++;

@@ -30,12 +30,13 @@ export async function reportAgent(
     }
 
     // Insert the report
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await db.insert(reports).values({
       agentId,
       reporterId,
       reason,
       detail,
-    });
+    } as any);
 
     // Check if auto-hide threshold is reached
     const windowStart = new Date();
@@ -60,7 +61,8 @@ export async function reportAgent(
     if (reportCount >= DEFAULTS.autoHideReportThreshold) {
       await db
         .update(agents)
-        .set({ status: "flagged", isActive: false })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .set({ status: "flagged", isActive: false } as any)
         .where(eq(agents.id, agentId));
       autoHidden = true;
     }

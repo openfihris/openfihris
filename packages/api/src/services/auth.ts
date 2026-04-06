@@ -135,33 +135,41 @@ export async function upsertCreator(
   user: GitHubUser,
 ): Promise<string> {
   try {
+    // Drizzle's insert type inference breaks in some TS/build configurations,
+    // so we explicitly type the values and conflict-update set.
+    const insertValues = {
+      githubId: user.id,
+      username: user.login,
+      displayName: user.name,
+      avatarUrl: user.avatar_url,
+      bio: user.bio,
+      githubCreatedAt: new Date(user.created_at),
+      publicRepos: user.public_repos,
+      followers: user.followers,
+      githubUrl: user.html_url,
+      website: user.blog,
+    };
+
+    const conflictSet = {
+      username: sql`excluded.username`,
+      displayName: sql`excluded.display_name`,
+      avatarUrl: sql`excluded.avatar_url`,
+      bio: sql`excluded.bio`,
+      publicRepos: sql`excluded.public_repos`,
+      followers: sql`excluded.followers`,
+      githubUrl: sql`excluded.github_url`,
+      website: sql`excluded.website`,
+      updatedAt: sql`now()`,
+    };
+
     const [result] = await db
       .insert(creators)
-      .values({
-        githubId: user.id,
-        username: user.login,
-        displayName: user.name,
-        avatarUrl: user.avatar_url,
-        bio: user.bio,
-        githubCreatedAt: new Date(user.created_at),
-        publicRepos: user.public_repos,
-        followers: user.followers,
-        githubUrl: user.html_url,
-        website: user.blog,
-      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .values(insertValues as any)
       .onConflictDoUpdate({
         target: creators.githubId,
-        set: {
-          username: sql`excluded.username`,
-          displayName: sql`excluded.display_name`,
-          avatarUrl: sql`excluded.avatar_url`,
-          bio: sql`excluded.bio`,
-          publicRepos: sql`excluded.public_repos`,
-          followers: sql`excluded.followers`,
-          githubUrl: sql`excluded.github_url`,
-          website: sql`excluded.website`,
-          updatedAt: sql`now()`,
-        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        set: conflictSet as any,
       })
       .returning({ id: creators.id });
 

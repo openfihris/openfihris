@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "vercel dev",
-    "build": "pnpm --filter @openfihris/shared run build && tsc",
+    "build": "tsc --build",
     "typecheck": "tsc --noEmit",
     "lint": "prettier --check \"src/**/*.ts\"",
     "test": "vitest run --passWithNoTests",

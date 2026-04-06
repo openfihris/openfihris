@@ -37,12 +37,16 @@ export async function castVote(
         if (voteValue === 1) {
           await db
             .update(agents)
-            .set({ upvotes: sql`GREATEST(${agents.upvotes} - 1, 0)` })
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .set({ upvotes: sql`GREATEST(${agents.upvotes} - 1, 0)` } as any)
             .where(eq(agents.id, agentId));
         } else {
           await db
             .update(agents)
-            .set({ downvotes: sql`GREATEST(${agents.downvotes} - 1, 0)` })
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .set({
+              downvotes: sql`GREATEST(${agents.downvotes} - 1, 0)`,
+            } as any)
             .where(eq(agents.id, agentId));
         }
 
@@ -51,7 +55,8 @@ export async function castVote(
         // Different vote — change it
         await db
           .update(votes)
-          .set({ vote: voteValue })
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .set({ vote: voteValue } as any)
           .where(
             and(eq(votes.creatorId, creatorId), eq(votes.agentId, agentId)),
           );
@@ -60,18 +65,20 @@ export async function castVote(
         if (voteValue === 1) {
           await db
             .update(agents)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .set({
               upvotes: sql`${agents.upvotes} + 1`,
               downvotes: sql`GREATEST(${agents.downvotes} - 1, 0)`,
-            })
+            } as any)
             .where(eq(agents.id, agentId));
         } else {
           await db
             .update(agents)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .set({
               upvotes: sql`GREATEST(${agents.upvotes} - 1, 0)`,
               downvotes: sql`${agents.downvotes} + 1`,
-            })
+            } as any)
             .where(eq(agents.id, agentId));
         }
 
@@ -80,21 +87,24 @@ export async function castVote(
     }
 
     // New vote
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await db.insert(votes).values({
       creatorId,
       agentId,
       vote: voteValue,
-    });
+    } as any);
 
     if (voteValue === 1) {
       await db
         .update(agents)
-        .set({ upvotes: sql`${agents.upvotes} + 1` })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .set({ upvotes: sql`${agents.upvotes} + 1` } as any)
         .where(eq(agents.id, agentId));
     } else {
       await db
         .update(agents)
-        .set({ downvotes: sql`${agents.downvotes} + 1` })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .set({ downvotes: sql`${agents.downvotes} + 1` } as any)
         .where(eq(agents.id, agentId));
     }
 
