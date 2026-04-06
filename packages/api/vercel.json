@@ -1,3 +1,5 @@
 {
+  "buildCommand": "tsc --build",
+  "outputDirectory": "public",
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
 }
