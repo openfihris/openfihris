@@ -35,10 +35,12 @@ agentsRouter.get("/api/v1/agents/search", async (c) => {
   const parseResult = SearchQuerySchema.safeParse(rawQuery);
   if (!parseResult.success) {
     return errorResponse(c, "VALIDATION_ERROR", "Invalid search parameters", {
-      issues: parseResult.error.issues.map((i) => ({
-        path: i.path.join("."),
-        message: i.message,
-      })),
+      issues: parseResult.error.issues.map(
+        (i: { path: (string | number)[]; message: string }) => ({
+          path: i.path.join("."),
+          message: i.message,
+        }),
+      ),
     });
   }
 
@@ -263,10 +265,12 @@ agentsRouter.post(
         "VALIDATION_ERROR",
         "Invalid report. Provide a valid reason.",
         {
-          issues: parseResult.error.issues.map((i) => ({
-            path: i.path.join("."),
-            message: i.message,
-          })),
+          issues: parseResult.error.issues.map(
+            (i: { path: (string | number)[]; message: string }) => ({
+              path: i.path.join("."),
+              message: i.message,
+            }),
+          ),
         },
       );
     }
