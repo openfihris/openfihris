@@ -60,10 +60,12 @@ export async function publishAgent(
         code: "VALIDATION_ERROR",
         message: "Invalid agent card",
         details: {
-          issues: parseResult.error.issues.map((i: { path: (string | number)[]; message: string }) => ({
-            path: i.path.join("."),
-            message: i.message,
-          })),
+          issues: parseResult.error.issues.map(
+            (i: { path: (string | number)[]; message: string }) => ({
+              path: i.path.join("."),
+              message: i.message,
+            }),
+          ),
         },
       },
     };
