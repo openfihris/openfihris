@@ -5,12 +5,11 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "vercel dev",
+    "dev": "wrangler dev",
     "build": "tsc --build",
     "typecheck": "tsc --noEmit",
     "lint": "prettier --check \"src/**/*.ts\"",
     "test": "vitest run --passWithNoTests",
-    "deploy": "vercel --prod",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
