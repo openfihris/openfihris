@@ -1,0 +1,6 @@
+node_modules
+dist
+.dev.vars
+wrangler.toml
+drizzle
+src/__tests__

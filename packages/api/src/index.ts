@@ -23,6 +23,20 @@ export type Env = {
 
 const app = new Hono<Env>();
 
+// Populate env bindings from process.env (for Vercel/Node environments)
+// On Cloudflare Workers, c.env is already populated by the runtime.
+app.use("*", async (c, next) => {
+  if (!c.env?.DATABASE_URL && typeof process !== "undefined") {
+    c.env = {
+      DATABASE_URL: process.env.DATABASE_URL ?? "",
+      JWT_SECRET: process.env.JWT_SECRET ?? "",
+      GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID ?? "",
+      GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET ?? "",
+    };
+  }
+  await next();
+});
+
 // Global middleware
 app.use("*", cors());
 app.use("*", bodyLimit({ maxSize: 100 * 1024 })); // 100KB max request body
