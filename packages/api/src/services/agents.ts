@@ -130,6 +130,7 @@ export async function publishAgent(
   try {
     const [created] = await db
       .insert(agents)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .values({
         creatorId,
         name: card.name,
@@ -148,7 +149,7 @@ export async function publishAgent(
         agentCard: { ...card, verifiedAuthor: false },
         frameworks: card.frameworks,
         verified: false,
-      })
+      } as any)
       .returning();
 
     return { ok: true as const, agent: created };

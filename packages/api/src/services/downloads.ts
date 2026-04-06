@@ -14,9 +14,8 @@ export async function trackDownload(
   try {
     const [updated] = await db
       .update(agents)
-      .set({
-        downloads: sql`${agents.downloads} + 1`,
-      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .set({ downloads: sql`${agents.downloads} + 1` } as any)
       .where(eq(agents.id, agentId))
       .returning({ downloads: agents.downloads });
 
