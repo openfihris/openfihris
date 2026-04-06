@@ -1,5 +1,3 @@
 {
-  "buildCommand": "tsc --build",
-  "outputDirectory": "public",
-  "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
+  "installCommand": "cd ../.. && pnpm install"
 }
