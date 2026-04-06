@@ -9,7 +9,7 @@ interface FihrisConfig {
 const config = new Conf<FihrisConfig>({
   projectName: "fihris",
   defaults: {
-    apiUrl: "https://openfihris-api.workers.dev",
+    apiUrl: "https://openfihris-api.vercel.app",
   },
 });
 
