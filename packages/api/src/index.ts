@@ -41,6 +41,24 @@ app.use("*", async (c, next) => {
 app.use("*", cors());
 app.use("*", bodyLimit({ maxSize: 100 * 1024 })); // 100KB max request body
 
+// Root route – API directory
+app.get("/", (c) =>
+  c.json({
+    name: "OpenFihris API",
+    version: "0.1.0",
+    description: "Open registry for AI agents, skills, and prompts",
+    docs: "https://github.com/openfihris/openfihris",
+    endpoints: {
+      health: "/health",
+      search: "/api/v1/agents/search?q=<query>",
+      trending: "/api/v1/trending",
+      categories: "/api/v1/categories",
+      agent: "/api/v1/agents/@:username/:name",
+      auth: "/api/v1/auth/github",
+    },
+  }),
+);
+
 // Routes
 app.route("/", health);
 app.route("/", auth);
