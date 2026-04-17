@@ -15,7 +15,20 @@ import { getTrendingAgents } from "../services/trending.js";
 import { castVote } from "../services/votes.js";
 import { reportAgent } from "../services/reports.js";
 import { trackDownload } from "../services/downloads.js";
-import { canPublish } from "../middleware/ratelimit.js";
+import { canPublish, canVote, canReport } from "../middleware/ratelimit.js";
+
+/**
+ * Action-specific 429 messages for the limit_exceeded branch.
+ */
+const RATE_LIMIT_MESSAGES = {
+  publish: "You have reached the daily publish limit (50 agents per day).",
+  vote: "You are voting too quickly. Please try again later.",
+  report:
+    "You have submitted too many reports recently. Please try again later.",
+} as const;
+
+const RATE_LIMIT_UNAVAILABLE =
+  "Rate limit check is temporarily unavailable. Please try again shortly.";
 
 const agentsRouter = new Hono<Env>();
 
@@ -103,13 +116,13 @@ agentsRouter.post("/api/v1/agents", requireAuth, async (c) => {
   const creatorId = c.get("creatorId");
   const username = c.get("username");
 
-  // Rate limit: max 50 agents per day per user
-  if (!(await canPublish(db, creatorId))) {
-    return errorResponse(
-      c,
-      "RATE_LIMITED",
-      "You have reached the daily publish limit (50 agents per day)",
-    );
+  // Rate limit: max 50 agents per day per user (fail-closed on DB errors)
+  const pubCheck = await canPublish(db, creatorId);
+  if (!pubCheck.ok) {
+    if (pubCheck.reason === "limit_exceeded") {
+      return errorResponse(c, "RATE_LIMITED", RATE_LIMIT_MESSAGES.publish);
+    }
+    return errorResponse(c, "INTERNAL_ERROR", RATE_LIMIT_UNAVAILABLE);
   }
 
   const result = await publishAgent(db, creatorId, username, {
@@ -244,12 +257,22 @@ agentsRouter.post(
 
     try {
       const db = createDb(c.env.DATABASE_URL);
+      const creatorId = c.get("creatorId");
+
+      // Rate limit: 60 votes/hour/creator (fail-closed on DB errors)
+      const rateCheck = await canVote(db, creatorId);
+      if (!rateCheck.ok) {
+        if (rateCheck.reason === "limit_exceeded") {
+          return errorResponse(c, "RATE_LIMITED", RATE_LIMIT_MESSAGES.vote);
+        }
+        return errorResponse(c, "INTERNAL_ERROR", RATE_LIMIT_UNAVAILABLE);
+      }
+
       const agent = await getAgentBySlug(db, slug);
       if (!agent) {
         return errorResponse(c, "NOT_FOUND", "Agent not found");
       }
 
-      const creatorId = c.get("creatorId");
       const result = await castVote(
         db,
         creatorId,
@@ -306,12 +329,22 @@ agentsRouter.post(
 
     try {
       const db = createDb(c.env.DATABASE_URL);
+      const creatorId = c.get("creatorId");
+
+      // Rate limit: 10 reports/hour/creator (fail-closed on DB errors)
+      const rateCheck = await canReport(db, creatorId);
+      if (!rateCheck.ok) {
+        if (rateCheck.reason === "limit_exceeded") {
+          return errorResponse(c, "RATE_LIMITED", RATE_LIMIT_MESSAGES.report);
+        }
+        return errorResponse(c, "INTERNAL_ERROR", RATE_LIMIT_UNAVAILABLE);
+      }
+
       const agent = await getAgentBySlug(db, slug);
       if (!agent) {
         return errorResponse(c, "NOT_FOUND", "Agent not found");
       }
 
-      const creatorId = c.get("creatorId");
       const result = await reportAgent(
         db,
         creatorId,
