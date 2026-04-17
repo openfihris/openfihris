@@ -50,9 +50,9 @@ export default async function AgentDetailPage({ params }: Params) {
             </Link>
           </div>
 
-          <div className="glass-panel rounded-3xl p-8 md:p-12 mb-8">
-            <div className="flex flex-col md:flex-row md:items-start gap-8">
-              <div className="flex-1">
+          <div className="glass-panel rounded-2xl md:rounded-3xl p-6 md:p-12 mb-8">
+            <div className="flex flex-col md:flex-row md:items-start gap-6 md:gap-8">
+              <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                   <span className="bg-primary/10 text-primary text-[10px] font-bold px-2.5 py-1 rounded border border-primary/20 uppercase">
                     {a.type}
@@ -72,10 +72,10 @@ export default async function AgentDetailPage({ params }: Params) {
                     </span>
                   )}
                 </div>
-                <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+                <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-3 break-words">
                   {a.name}
                 </h1>
-                <div className="mono-text text-on-surface-variant/80 text-sm mb-6">
+                <div className="mono-text text-on-surface-variant/80 text-xs sm:text-sm mb-6 break-all">
                   {a.slug}
                   {a.version && (
                     <>
@@ -89,12 +89,12 @@ export default async function AgentDetailPage({ params }: Params) {
                     </>
                   )}
                 </div>
-                <p className="text-on-surface-variant leading-relaxed text-lg max-w-2xl">
+                <p className="text-on-surface-variant leading-relaxed text-base md:text-lg max-w-2xl">
                   {a.description}
                 </p>
               </div>
 
-              <div className="flex md:flex-col gap-4 md:min-w-[180px]">
+              <div className="grid grid-cols-3 md:grid-cols-1 gap-3 md:gap-4 md:min-w-[180px]">
                 <Stat
                   label="Downloads"
                   value={formatNumber(a.downloads)}
@@ -114,14 +114,19 @@ export default async function AgentDetailPage({ params }: Params) {
             </div>
 
             {/* Install */}
-            <div className="mt-10 bg-[#060e20] rounded-xl p-5 border border-white/5 flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="text-primary-fixed-dim mono-text select-none">$</span>
-                <code className="mono-text text-primary text-sm font-medium truncate">
+            <div className="mt-8 md:mt-10 bg-[#060e20] rounded-xl p-4 md:p-5 border border-white/5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <span
+                  className="text-primary-fixed-dim mono-text select-none shrink-0"
+                  aria-hidden="true"
+                >
+                  $
+                </span>
+                <code className="mono-text text-primary text-xs sm:text-sm font-medium truncate">
                   fihris install {a.slug}
                 </code>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50 shrink-0">
                 CLI
               </span>
             </div>
@@ -284,14 +289,14 @@ function Stat({
   icon: string;
 }) {
   return (
-    <div className="bg-surface-container-highest/40 border border-white/5 rounded-xl px-4 py-3 flex-1 md:flex-none">
-      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-on-surface-variant/60 mb-1">
+    <div className="bg-surface-container-highest/40 border border-white/5 rounded-xl px-3 sm:px-4 py-3">
+      <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] uppercase tracking-widest text-on-surface-variant/60 mb-1">
         <span className="material-symbols-outlined text-xs" aria-hidden="true">
           {icon}
         </span>
-        {label}
+        <span className="truncate">{label}</span>
       </div>
-      <div className="text-2xl font-bold font-mono">{value}</div>
+      <div className="text-xl sm:text-2xl font-bold font-mono">{value}</div>
     </div>
   );
 }

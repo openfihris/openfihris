@@ -22,7 +22,7 @@ export default async function Home() {
 
       <main className="relative z-10 pt-24">
         {/* Hero */}
-        <section className="max-w-6xl mx-auto px-6 py-20 md:py-24 text-center relative overflow-hidden">
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-24 text-center relative overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[160px] -z-10" />
 
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-widest mb-8">
@@ -33,12 +33,12 @@ export default async function Home() {
             Live registry — free &amp; open source
           </div>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-b from-on-surface via-on-surface to-on-surface/40 leading-[1.05]">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 sm:mb-8 bg-clip-text text-transparent bg-gradient-to-b from-on-surface via-on-surface to-on-surface/40 leading-[1.05]">
             The Open Registry <br className="hidden md:block" />
             for AI Agents
           </h1>
 
-          <p className="text-lg md:text-xl text-on-surface-variant max-w-2xl mx-auto mb-12 leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-on-surface-variant max-w-2xl mx-auto mb-10 sm:mb-12 leading-relaxed">
             Search, install, and share AI agents across any framework. One
             unified CLI to integrate production-grade agentic capabilities.
           </p>
@@ -77,15 +77,20 @@ export default async function Home() {
             </a>
           </div>
 
-          <div className="flex items-center justify-center gap-3">
-            <div className="bg-surface-container-high/50 backdrop-blur-sm px-6 py-4 rounded-xl border border-outline-variant/20 flex items-center gap-6 hover:border-primary/30 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="text-primary-fixed-dim select-none">$</span>
-                <code className="mono-text text-primary text-sm font-medium">
+          <div className="flex items-center justify-center gap-3 px-4">
+            <div className="bg-surface-container-high/50 backdrop-blur-sm px-4 sm:px-6 py-3 sm:py-4 rounded-xl border border-outline-variant/20 flex items-center gap-3 sm:gap-6 hover:border-primary/30 transition-colors max-w-full">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <span
+                  className="text-primary-fixed-dim select-none shrink-0"
+                  aria-hidden="true"
+                >
+                  $
+                </span>
+                <code className="mono-text text-primary text-xs sm:text-sm font-medium truncate">
                   fihris install @user/agent
                 </code>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant shrink-0">
                 CLI
               </span>
             </div>
@@ -183,7 +188,7 @@ export default async function Home() {
                   </div>
                 </div>
               </div>
-              <div className="p-8 mono-text text-sm leading-relaxed min-h-[360px] bg-gradient-to-b from-[#0b1326] to-[#060e20]">
+              <div className="p-4 sm:p-8 mono-text text-xs sm:text-sm leading-relaxed min-h-[360px] bg-gradient-to-b from-[#0b1326] to-[#060e20] overflow-x-auto">
                 <div className="flex gap-4 mb-4">
                   <span className="text-primary-fixed-dim">➜</span>
                   <span className="text-on-surface">

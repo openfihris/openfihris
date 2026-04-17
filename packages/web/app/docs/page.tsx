@@ -150,7 +150,8 @@ export default function DocsPage() {
           {/* CLI commands */}
           <section id="cli" className="mb-16">
             <h2 className="text-2xl font-bold mb-6">CLI commands</h2>
-            <div className="border border-white/10 rounded-2xl overflow-hidden">
+            {/* Desktop: table. Mobile: stacked cards. */}
+            <div className="hidden md:block border border-white/10 rounded-2xl overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-surface-container-low/60">
                   <tr className="text-left text-[10px] uppercase tracking-widest text-on-surface-variant/60">
@@ -174,6 +175,19 @@ export default function DocsPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="md:hidden space-y-3">
+              {cliCommands.map((c) => (
+                <div
+                  key={c.cmd}
+                  className="bg-surface-container-low/60 border border-white/5 rounded-xl p-4"
+                >
+                  <code className="mono-text text-primary text-sm block mb-2 break-all">
+                    {c.cmd}
+                  </code>
+                  <p className="text-on-surface-variant text-sm">{c.desc}</p>
+                </div>
+              ))}
             </div>
             <p className="mt-4 text-sm text-on-surface-variant/70">
               The CLI is built but not yet published to npm. For now, clone
@@ -200,23 +214,25 @@ export default function DocsPage() {
               {apiEndpoints.map((e) => (
                 <div
                   key={`${e.method}-${e.path}`}
-                  className="bg-surface-container-low/60 border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+                  className="bg-surface-container-low/60 border border-white/5 rounded-xl p-4"
                 >
-                  <span
-                    className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase shrink-0 border ${
-                      e.method === "GET"
-                        ? "bg-primary/10 text-primary border-primary/20"
-                        : "bg-tertiary/10 text-tertiary border-tertiary/20"
-                    }`}
-                  >
-                    {e.method}
-                  </span>
-                  <code className="mono-text text-sm text-on-surface break-all">
-                    {e.path}
-                  </code>
-                  <span className="text-on-surface-variant text-xs sm:ml-auto sm:text-right">
+                  <div className="flex items-start gap-3 mb-2">
+                    <span
+                      className={`inline-block px-2.5 py-1 rounded text-[10px] font-bold uppercase shrink-0 border ${
+                        e.method === "GET"
+                          ? "bg-primary/10 text-primary border-primary/20"
+                          : "bg-tertiary/10 text-tertiary border-tertiary/20"
+                      }`}
+                    >
+                      {e.method}
+                    </span>
+                    <code className="mono-text text-xs sm:text-sm text-on-surface break-all flex-1 min-w-0">
+                      {e.path}
+                    </code>
+                  </div>
+                  <p className="text-on-surface-variant text-xs sm:text-sm">
                     {e.desc}
-                  </span>
+                  </p>
                 </div>
               ))}
             </div>
