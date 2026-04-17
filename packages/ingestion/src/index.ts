@@ -1,14 +1,20 @@
-// TODO: Auto-ingestion pipeline
-//
-// This package will contain:
-// - Crawlers: one per source (ClawHub, awesome-lists, A2A registries)
-// - Parsers: SKILL.md, prompt markdown, LobeChat JSON, Agent Card JSON
-// - Normalizer: convert all formats to OpenFihris Agent Card
-// - Embedder: generate vector embeddings for semantic search
-// - Orchestrator: crawl -> parse -> normalize -> embed -> upsert
-//
-// Runs as a GitHub Action on a weekly cron schedule.
-// See the architecture doc for full ingestion design.
+/**
+ * OpenFihris ingestion package.
+ *
+ * Exposes:
+ * - Parsers (SKILL.md, A2A Agent Card JSON, LobeChat JSON)
+ * - GitHub client (`github.ts`)
+ * - Crawlers:
+ *     - crawlRepo(spec) — one GitHub repo
+ *     - crawlAwesomeList(listSpec) — every repo linked from an awesome-list README
+ *
+ * Run the CLI for ad-hoc crawls:
+ *   pnpm --filter @openfihris/ingestion build
+ *   node packages/ingestion/dist/cli.js repo cline/awesome-agents
+ *   node packages/ingestion/dist/cli.js awesome cline/awesome-agents --limit=10
+ *
+ * Designed to run on a weekly cron (GitHub Actions) once hooked up to the API.
+ */
 
 export {
   parseAny,
@@ -19,3 +25,23 @@ export {
 } from "./parsers/index.js";
 
 export type { ParseResult, Parser } from "./parsers/index.js";
+
+export {
+  GitHubError,
+  getRepo,
+  getTree,
+  getFileContent,
+  findFiles,
+  parseRepo,
+} from "./github.js";
+export type { GitHubAuth, Repo, TreeItem } from "./github.js";
+
+export { crawlRepo } from "./crawlers/github-repo.js";
+export type { CrawlOptions, CrawlResult } from "./crawlers/github-repo.js";
+
+export {
+  crawlAwesomeList,
+  fetchAwesomeListRepos,
+  extractRepoLinks,
+} from "./crawlers/awesome-list.js";
+export type { AwesomeListOptions } from "./crawlers/awesome-list.js";
