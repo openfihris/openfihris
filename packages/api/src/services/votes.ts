@@ -3,10 +3,15 @@ import type { Database } from "../db/index.js";
 import { votes, agents } from "../db/schema.js";
 
 /**
- * Cast a vote on an agent. Handles:
- * - New vote: inserts and updates agent vote counts
- * - Same vote: removes the vote (toggle off)
- * - Changed vote: updates the vote and adjusts counts
+ * Cast a vote on an agent — atomic.
+ * Wraps the check + delete/update/insert sequence in a transaction so
+ * concurrent votes from the same creator can't double-increment or leave
+ * counters inconsistent with the votes table.
+ *
+ * Semantics:
+ * - No existing vote → insert, increment corresponding column
+ * - Same vote exists → delete (toggle off), decrement (bounded at 0)
+ * - Opposite vote exists → flip, swap the two counters (bounded at 0)
  */
 export async function castVote(
   db: Database,
@@ -15,45 +20,44 @@ export async function castVote(
   voteValue: -1 | 1,
 ): Promise<{ action: "added" | "removed" | "changed"; vote: number }> {
   try {
-    // Check for existing vote
-    const existing = await db
-      .select()
-      .from(votes)
-      .where(and(eq(votes.creatorId, creatorId), eq(votes.agentId, agentId)))
-      .limit(1);
+    return await db.transaction(async (tx) => {
+      const existing = await tx
+        .select()
+        .from(votes)
+        .where(and(eq(votes.creatorId, creatorId), eq(votes.agentId, agentId)))
+        .limit(1);
 
-    if (existing.length > 0) {
-      const currentVote = existing[0].vote;
+      if (existing.length > 0) {
+        const currentVote = existing[0].vote;
 
-      if (currentVote === voteValue) {
-        // Same vote — toggle off (remove)
-        await db
-          .delete(votes)
-          .where(
-            and(eq(votes.creatorId, creatorId), eq(votes.agentId, agentId)),
-          );
+        if (currentVote === voteValue) {
+          // Toggle off
+          await tx
+            .delete(votes)
+            .where(
+              and(eq(votes.creatorId, creatorId), eq(votes.agentId, agentId)),
+            );
 
-        // Update agent counts
-        if (voteValue === 1) {
-          await db
-            .update(agents)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .set({ upvotes: sql`GREATEST(${agents.upvotes} - 1, 0)` } as any)
-            .where(eq(agents.id, agentId));
-        } else {
-          await db
-            .update(agents)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .set({
-              downvotes: sql`GREATEST(${agents.downvotes} - 1, 0)`,
-            } as any)
-            .where(eq(agents.id, agentId));
+          if (voteValue === 1) {
+            await tx
+              .update(agents)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              .set({ upvotes: sql`GREATEST(${agents.upvotes} - 1, 0)` } as any)
+              .where(eq(agents.id, agentId));
+          } else {
+            await tx
+              .update(agents)
+              .set({
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                downvotes: sql`GREATEST(${agents.downvotes} - 1, 0)`,
+              } as any)
+              .where(eq(agents.id, agentId));
+          }
+          return { action: "removed" as const, vote: 0 };
         }
 
-        return { action: "removed", vote: 0 };
-      } else {
-        // Different vote — change it
-        await db
+        // Flip
+        await tx
           .update(votes)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .set({ vote: voteValue } as any)
@@ -61,55 +65,57 @@ export async function castVote(
             and(eq(votes.creatorId, creatorId), eq(votes.agentId, agentId)),
           );
 
-        // Swap counts: remove old, add new
         if (voteValue === 1) {
-          await db
+          await tx
             .update(agents)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .set({
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               upvotes: sql`${agents.upvotes} + 1`,
               downvotes: sql`GREATEST(${agents.downvotes} - 1, 0)`,
             } as any)
             .where(eq(agents.id, agentId));
         } else {
-          await db
+          await tx
             .update(agents)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .set({
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               upvotes: sql`GREATEST(${agents.upvotes} - 1, 0)`,
               downvotes: sql`${agents.downvotes} + 1`,
             } as any)
             .where(eq(agents.id, agentId));
         }
-
-        return { action: "changed", vote: voteValue };
+        return { action: "changed" as const, vote: voteValue };
       }
-    }
 
-    // New vote
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await db.insert(votes).values({
-      creatorId,
-      agentId,
-      vote: voteValue,
-    } as any);
-
-    if (voteValue === 1) {
-      await db
-        .update(agents)
+      // New vote
+      await tx
+        .insert(votes)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .set({ upvotes: sql`${agents.upvotes} + 1` } as any)
-        .where(eq(agents.id, agentId));
-    } else {
-      await db
-        .update(agents)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .set({ downvotes: sql`${agents.downvotes} + 1` } as any)
-        .where(eq(agents.id, agentId));
-    }
+        .values({
+          creatorId,
+          agentId,
+          vote: voteValue,
+        } as any);
 
-    return { action: "added", vote: voteValue };
+      if (voteValue === 1) {
+        await tx
+          .update(agents)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .set({ upvotes: sql`${agents.upvotes} + 1` } as any)
+          .where(eq(agents.id, agentId));
+      } else {
+        await tx
+          .update(agents)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .set({ downvotes: sql`${agents.downvotes} + 1` } as any)
+          .where(eq(agents.id, agentId));
+      }
+
+      return { action: "added" as const, vote: voteValue };
+    });
   } catch (err) {
+    // Unique-constraint race: two inserts hit the idx_votes_unique. Surface
+    // a generic error — the client can retry and get the correct state.
     console.error("Vote error:", err);
     throw new Error("Failed to cast vote. Please try again.");
   }
