@@ -5,11 +5,9 @@ import { useEffect, useRef, useState } from "react";
 
 export function SearchBar({
   defaultValue = "",
-  placeholder = "Find an agent (e.g., 'code-reviewer', 'lead-gen')...",
   autofocus = false,
 }: {
   defaultValue?: string;
-  placeholder?: string;
   autofocus?: boolean;
 }) {
   const [query, setQuery] = useState(defaultValue);
@@ -34,7 +32,6 @@ export function SearchBar({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = query.trim();
-    // Basic safety: strip anything but letters, numbers, spaces, and a handful of punctuation
     const safe = trimmed.replace(/[<>{}]/g, "").slice(0, 200);
     const qs = safe ? `?q=${encodeURIComponent(safe)}` : "";
     router.push(`/search${qs}`);
@@ -42,9 +39,13 @@ export function SearchBar({
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto mb-4">
-      <div className="relative group">
+      {/* Mobile: stacked input + button. Desktop: combined pill. */}
+      <div className="hidden sm:block relative group">
         <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-primary">
-          <span className="material-symbols-outlined font-bold" aria-hidden="true">
+          <span
+            className="material-symbols-outlined font-bold"
+            aria-hidden="true"
+          >
             search
           </span>
         </div>
@@ -53,10 +54,10 @@ export function SearchBar({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
+          placeholder="Find an agent (e.g. code reviewer)"
           aria-label="Search agents"
           maxLength={200}
-          className="w-full bg-surface-container-lowest border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 focus:outline-none h-16 md:h-20 pl-14 pr-24 md:pr-32 rounded-2xl text-on-surface text-base md:text-lg placeholder:text-on-surface-variant/40 transition-all shadow-2xl"
+          className="w-full bg-surface-container-lowest border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 focus:outline-none h-16 md:h-20 pl-14 pr-32 md:pr-36 rounded-2xl text-on-surface text-base md:text-lg placeholder:text-on-surface-variant/40 transition-all shadow-2xl"
         />
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
           <kbd className="hidden md:block bg-surface-container-high px-3 py-1.5 rounded-lg text-[10px] text-on-surface-variant border border-outline-variant/30 mono-text shadow-sm">
@@ -64,11 +65,41 @@ export function SearchBar({
           </kbd>
           <button
             type="submit"
-            className="bg-primary text-on-primary px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-container transition-colors"
+            className="bg-primary text-on-primary px-4 md:px-5 py-2 rounded-lg text-sm font-semibold hover:bg-primary-container transition-colors"
           >
             Search
           </button>
         </div>
+      </div>
+
+      {/* Mobile-only: stacked */}
+      <div className="sm:hidden space-y-3">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-primary">
+            <span
+              className="material-symbols-outlined font-bold"
+              aria-hidden="true"
+            >
+              search
+            </span>
+          </div>
+          <input
+            ref={inputRef}
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search agents..."
+            aria-label="Search agents"
+            maxLength={200}
+            className="w-full bg-surface-container-lowest border border-outline-variant/20 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 focus:outline-none h-14 pl-12 pr-4 rounded-xl text-on-surface text-base placeholder:text-on-surface-variant/40 transition-all shadow-2xl"
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-primary text-on-primary h-12 rounded-xl text-base font-semibold hover:bg-primary-container transition-colors active:scale-[0.98]"
+        >
+          Search the registry
+        </button>
       </div>
     </form>
   );
