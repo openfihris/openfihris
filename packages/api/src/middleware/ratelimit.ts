@@ -16,13 +16,17 @@ export const RATE_LIMITS = {
   reportsPerHour: 10,
 } as const;
 
-export type RateLimitResult =
-  | { ok: true }
-  | {
-      ok: false;
-      reason: "limit_exceeded" | "check_failed";
-      retryAfter?: number;
-    };
+/**
+ * A flat (non-discriminated) shape so that access to `reason` after a
+ * negative `ok` check works without cross-function narrowing. Vercel's
+ * `tsc --build` with incremental cache has repeatedly failed to narrow
+ * the discriminated-union variant of this type, so we keep things simple.
+ */
+export type RateLimitResult = {
+  ok: boolean;
+  reason?: "limit_exceeded" | "check_failed";
+  retryAfter?: number;
+};
 
 /**
  * Helper: build a Date N hours in the past.
