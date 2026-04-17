@@ -64,7 +64,7 @@ const apiEndpoints = [
   },
   {
     method: "GET",
-    path: "/api/v1/agents/@:username/:name",
+    path: "/api/v1/agents/@{username}/{name}",
     desc: "Get a single agent's metadata.",
   },
   {
@@ -74,17 +74,17 @@ const apiEndpoints = [
   },
   {
     method: "POST",
-    path: "/api/v1/agents/@:username/:name/download",
+    path: "/api/v1/agents/@{username}/{name}/download",
     desc: "Track a download (public, IP rate-limited).",
   },
   {
     method: "POST",
-    path: "/api/v1/agents/@:username/:name/vote",
+    path: "/api/v1/agents/@{username}/{name}/vote",
     desc: "Upvote or downvote an agent (auth required).",
   },
   {
     method: "POST",
-    path: "/api/v1/agents/@:username/:name/report",
+    path: "/api/v1/agents/@{username}/{name}/report",
     desc: "Flag an agent for malware, spam, or abuse (auth required).",
   },
   {

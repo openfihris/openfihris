@@ -53,7 +53,7 @@ app.get("/", (c) =>
       search: "/api/v1/agents/search?q=<query>",
       trending: "/api/v1/trending",
       categories: "/api/v1/categories",
-      agent: "/api/v1/agents/@:username/:name",
+      agent: "/api/v1/agents/@{username}/{name}",
       auth: "/api/v1/auth/github",
     },
   }),

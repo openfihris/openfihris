@@ -20,6 +20,28 @@ import { canPublish } from "../middleware/ratelimit.js";
 const agentsRouter = new Hono<Env>();
 
 /**
+ * Maximum allowed slug length. GitHub usernames are capped at 39 chars and
+ * agent names at 100 (see `packages/shared/src/constants.ts`). We add 1 for
+ * the leading `@`, 1 for the `/`, and a generous buffer. Anything over this
+ * is definitely malicious — reject early to avoid wasted DB lookups.
+ */
+const MAX_SLUG_LENGTH = 1 + 39 + 1 + 100; // 141
+
+/**
+ * Extracts the `:slug` param from a matched route and validates its length.
+ * Returns null if the slug is missing or too long (the route regex already
+ * ensures the @user/name shape, so this is a belt-and-suspenders check).
+ */
+function getSlugParam(c: {
+  req: { param: (name: string) => string | undefined };
+}): string | null {
+  const slug = c.req.param("slug");
+  if (!slug) return null;
+  if (slug.length > MAX_SLUG_LENGTH) return null;
+  return slug;
+}
+
+/**
  * GET /api/v1/agents/search — Search for agents (public)
  */
 agentsRouter.get("/api/v1/agents/search", async (c) => {
@@ -109,13 +131,19 @@ agentsRouter.post("/api/v1/agents", requireAuth, async (c) => {
 });
 
 /**
- * GET /api/v1/agents/@:username/:name — Get agent details (public)
- * Slug format: @username/agent-name
+ * GET /api/v1/agents/:slug — Get agent details (public).
+ *
+ * The slug is the full `@username/agent-name` string. We use a regex-
+ * constrained param because Hono's SmartRouter does not correctly parse
+ * patterns like `@:username/:name` where a literal is followed by a param
+ * inside the same segment — the second param gets dropped. See the test
+ * `hono-probe.test.ts` and `slug-routing.test.ts` for the full repro.
  */
-agentsRouter.get("/api/v1/agents/@:username/:name", async (c) => {
-  const username = c.req.param("username");
-  const name = c.req.param("name");
-  const slug = `@${username}/${name}`;
+agentsRouter.get("/api/v1/agents/:slug{@[^/]+/[^/]+}", async (c) => {
+  const slug = getSlugParam(c);
+  if (!slug) {
+    return errorResponse(c, "NOT_FOUND", "Agent not found");
+  }
 
   try {
     const db = createDb(c.env.DATABASE_URL);
@@ -133,14 +161,15 @@ agentsRouter.get("/api/v1/agents/@:username/:name", async (c) => {
 });
 
 /**
- * POST /api/v1/agents/@:username/:name/download — Track a download (public, no auth)
+ * POST /api/v1/agents/:slug/download — Track a download (public, no auth).
  * Called by the CLI when someone installs an agent.
  * Rate limited per IP to prevent abuse.
  */
-agentsRouter.post("/api/v1/agents/@:username/:name/download", async (c) => {
-  const username = c.req.param("username");
-  const name = c.req.param("name");
-  const slug = `@${username}/${name}`;
+agentsRouter.post("/api/v1/agents/:slug{@[^/]+/[^/]+}/download", async (c) => {
+  const slug = getSlugParam(c);
+  if (!slug) {
+    return errorResponse(c, "NOT_FOUND", "Agent not found");
+  }
 
   try {
     const db = createDb(c.env.DATABASE_URL);
@@ -186,15 +215,16 @@ agentsRouter.get("/api/v1/trending", async (c) => {
 });
 
 /**
- * POST /api/v1/agents/@:username/:name/vote — Vote on an agent (authenticated)
+ * POST /api/v1/agents/:slug/vote — Vote on an agent (authenticated).
  */
 agentsRouter.post(
-  "/api/v1/agents/@:username/:name/vote",
+  "/api/v1/agents/:slug{@[^/]+/[^/]+}/vote",
   requireAuth,
   async (c) => {
-    const username = c.req.param("username");
-    const name = c.req.param("name");
-    const slug = `@${username}/${name}`;
+    const slug = getSlugParam(c);
+    if (!slug) {
+      return errorResponse(c, "NOT_FOUND", "Agent not found");
+    }
 
     let body: unknown;
     try {
@@ -229,23 +259,22 @@ agentsRouter.post(
       return c.json(result);
     } catch (err) {
       console.error("Vote endpoint error:", err);
-      const message =
-        err instanceof Error ? err.message : "Failed to cast vote";
-      return errorResponse(c, "INTERNAL_ERROR", message);
+      return errorResponse(c, "INTERNAL_ERROR", "Failed to cast vote");
     }
   },
 );
 
 /**
- * POST /api/v1/agents/@:username/:name/report — Report an agent (authenticated)
+ * POST /api/v1/agents/:slug/report — Report an agent (authenticated).
  */
 agentsRouter.post(
-  "/api/v1/agents/@:username/:name/report",
+  "/api/v1/agents/:slug{@[^/]+/[^/]+}/report",
   requireAuth,
   async (c) => {
-    const username = c.req.param("username");
-    const name = c.req.param("name");
-    const slug = `@${username}/${name}`;
+    const slug = getSlugParam(c);
+    if (!slug) {
+      return errorResponse(c, "NOT_FOUND", "Agent not found");
+    }
 
     let body: unknown;
     try {
@@ -293,12 +322,15 @@ agentsRouter.post(
       return c.json(result);
     } catch (err) {
       console.error("Report endpoint error:", err);
-      const message =
-        err instanceof Error ? err.message : "Failed to submit report";
+      const message = err instanceof Error ? err.message : "";
       if (message.includes("already reported")) {
-        return errorResponse(c, "CONFLICT", message);
+        return errorResponse(
+          c,
+          "CONFLICT",
+          "You have already reported this agent",
+        );
       }
-      return errorResponse(c, "INTERNAL_ERROR", message);
+      return errorResponse(c, "INTERNAL_ERROR", "Failed to submit report");
     }
   },
 );
