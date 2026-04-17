@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "description": "Shared types, validation schemas, and constants for OpenFihris",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -12,11 +12,21 @@
       "default": "./src/index.ts"
     }
   },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "lint": "prettier --check \"src/**/*.ts\"",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepack": "tsc"
   },
   "dependencies": {
     "zod": "^3.24.1"
@@ -24,5 +34,27 @@
   "devDependencies": {
     "typescript": "5.7.3",
     "vitest": "^3.0.4"
+  },
+  "keywords": [
+    "ai-agents",
+    "agent-registry",
+    "openfihris",
+    "types",
+    "schema"
+  ],
+  "author": "OpenFihris contributors",
+  "license": "MIT",
+  "homepage": "https://github.com/openfihris/openfihris/tree/main/packages/shared#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openfihris/openfihris.git",
+    "directory": "packages/shared"
+  },
+  "bugs": {
+    "url": "https://github.com/openfihris/openfihris/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
