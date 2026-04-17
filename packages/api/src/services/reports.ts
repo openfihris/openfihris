@@ -4,9 +4,15 @@ import type { Database } from "../db/index.js";
 import { reports, agents } from "../db/schema.js";
 
 /**
- * Report an agent for review.
- * If the agent receives enough reports within the threshold window,
- * it gets automatically hidden from search results.
+ * Report an agent for review — atomic.
+ *
+ * Wraps the duplicate-check, insert, count, and auto-hide update in a single
+ * transaction so concurrent reports can't double-count toward the auto-hide
+ * threshold and can't race past the per-creator uniqueness guard.
+ *
+ * The unique index `idx_reports_unique (reporterId, agentId)` is the ultimate
+ * source of truth — if two parallel reports slip past the SELECT, the second
+ * INSERT will fail and the transaction rolls back.
  */
 export async function reportAgent(
   db: Database,
@@ -16,61 +22,73 @@ export async function reportAgent(
   detail?: string,
 ): Promise<{ reported: boolean; autoHidden: boolean }> {
   try {
-    // Check if user already reported this agent
-    const existing = await db
-      .select()
-      .from(reports)
-      .where(
-        and(eq(reports.reporterId, reporterId), eq(reports.agentId, agentId)),
-      )
-      .limit(1);
+    return await db.transaction(async (tx) => {
+      // Duplicate guard (fast path; unique index is the backstop)
+      const existing = await tx
+        .select({ id: reports.id })
+        .from(reports)
+        .where(
+          and(eq(reports.reporterId, reporterId), eq(reports.agentId, agentId)),
+        )
+        .limit(1);
+      if (existing.length > 0) {
+        throw new Error("You have already reported this agent");
+      }
 
-    if (existing.length > 0) {
-      throw new Error("You have already reported this agent");
-    }
+      await tx
+        .insert(reports)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .values({
+          agentId,
+          reporterId,
+          reason,
+          detail,
+        } as any);
 
-    // Insert the report
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await db.insert(reports).values({
-      agentId,
-      reporterId,
-      reason,
-      detail,
-    } as any);
-
-    // Check if auto-hide threshold is reached
-    const windowStart = new Date();
-    windowStart.setDate(
-      windowStart.getDate() - DEFAULTS.autoHideReportWindowDays,
-    );
-
-    const [countResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(reports)
-      .where(
-        and(
-          eq(reports.agentId, agentId),
-          eq(reports.resolved, false),
-          gte(reports.createdAt, windowStart),
-        ),
+      // Count unresolved reports within the auto-hide window
+      const windowStart = new Date();
+      windowStart.setDate(
+        windowStart.getDate() - DEFAULTS.autoHideReportWindowDays,
       );
 
-    const reportCount = Number(countResult?.count ?? 0);
-    let autoHidden = false;
+      const [countResult] = await tx
+        .select({ count: sql<number>`count(*)` })
+        .from(reports)
+        .where(
+          and(
+            eq(reports.agentId, agentId),
+            eq(reports.resolved, false),
+            gte(reports.createdAt, windowStart),
+          ),
+        );
 
-    if (reportCount >= DEFAULTS.autoHideReportThreshold) {
-      await db
-        .update(agents)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .set({ status: "flagged", isActive: false } as any)
-        .where(eq(agents.id, agentId));
-      autoHidden = true;
-    }
+      const reportCount = Number(countResult?.count ?? 0);
+      let autoHidden = false;
 
-    return { reported: true, autoHidden };
+      if (reportCount >= DEFAULTS.autoHideReportThreshold) {
+        await tx
+          .update(agents)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .set({ status: "flagged", isActive: false } as any)
+          .where(eq(agents.id, agentId));
+        autoHidden = true;
+      }
+
+      return { reported: true, autoHidden };
+    });
   } catch (err) {
     if (err instanceof Error && err.message.includes("already reported")) {
       throw err;
+    }
+    // Unique-constraint race → DB error surfaces here. Convert to the
+    // friendly duplicate message so the client doesn't see a raw DB error.
+    const errMessage = err instanceof Error ? err.message : "";
+    if (
+      errMessage.includes("unique") ||
+      errMessage.includes("duplicate") ||
+      errMessage.includes("idx_reports_unique")
+    ) {
+      throw new Error("You have already reported this agent");
     }
     console.error("Report error:", err);
     throw new Error("Failed to submit report. Please try again.");
